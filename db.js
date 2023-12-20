@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql");
+const multer = require("multer");
 
 const app = express();
 
@@ -14,6 +15,23 @@ const db = mysql.createConnection({
   database: "test_db",
 });
 
+db.connect(function (err) {
+  console.log(err ? err : "connected");
+});
+
+//storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    return cb(null, "./public/images");
+  },
+
+  filename: function (req, file, cb) {
+    return cb(null, `${Date.now()}_${file.originalname}`);
+  },
+});
+
+const upload = multer({ storage });
+
 //fetch Data
 app.get("/", (req, res) => {
   const sql = "SELECT * FROM navbar";
@@ -24,12 +42,13 @@ app.get("/", (req, res) => {
 });
 
 //Post Data
-app.post("/create", (req, res) => {
-  const sql = "INSERT INTO navbar (`Name`, `Email`) VALUES (?)";
-  const values = [req.body.name, req.body.email];
+app.post("/create", upload.single("file"), (req, res) => {
+  const sql = "INSERT INTO navbar (`_name`, `_email`, `_image`) VALUES (?)";
+  const values = [req.body.name, req.body.email, req.file.filename];
   db.query(sql, [values], (err, data) => {
     if (err) return res.json("err", err);
-    return res.json(data);
+    //return res.json({ data });
+    return res.json({ status: "success" });
   });
 });
 
