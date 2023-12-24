@@ -1,13 +1,15 @@
 const express = require("express");
-const cors = require("cors");
 const mysql = require("mysql");
-const multer = require("multer");
+const cors = require("cors");
+//const multer = require("multer");
 
 const app = express();
 
 app.use(express.json());
 app.use(cors());
+//app.use(express.static("public"));
 
+//connection database
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
@@ -15,63 +17,58 @@ const db = mysql.createConnection({
   database: "test_db",
 });
 
-db.connect(function (err) {
+db.connect((err) => {
   console.log(err ? err : "connected");
 });
 
-//storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    return cb(null, "./public/images");
-  },
-
-  filename: function (req, file, cb) {
-    return cb(null, `${Date.now()}_${file.originalname}`);
-  },
-});
-
-const upload = multer({ storage });
-
-//fetch Data
+//fetch data from Database
 app.get("/", (req, res) => {
-  const sql = "SELECT * FROM navbar";
-  db.query(sql, (err, data) => {
-    if (err) return res.json("error ", err);
-    return res.json(data);
+  const data = "SELECT * FROM home";
+  db.query(data, (err, data) => {
+    if (err) return res.json({ err: err.sqlMessage });
+    else return res.json({ data });
   });
 });
 
-//Post Data
-app.post("/create", upload.single("file"), (req, res) => {
-  const sql = "INSERT INTO navbar (`_name`, `_email`, `_image`) VALUES (?)";
-  const values = [req.body.name, req.body.email, req.file.filename];
-  db.query(sql, [values], (err, data) => {
-    if (err) return res.json("err", err);
-    //return res.json({ data });
-    return res.json({ status: "success" });
+//insert data in database
+app.post("/item", (req, res) => {
+  const data = `INSERT INTO home (_id, _title, _desc, _image) VALUES(?)`;
+  const values = [...Object.values(req.body)];
+  console.log("insert", values);
+
+  db.query(data, [values], (err, data) => {
+    console.log(err, data);
+    if (err) return res.json({ error: err.sqlMessage });
+    else return res.json({ data });
   });
 });
 
 //update Data
-app.put("/update/:id", (req, res) => {
-  const sql = "UPDATE navbar SET `Name` = ? , `Email` = ? WHERE ID = ?";
-  const values = [req.body.name, req.body.email];
-  const id = req.params.id;
+app.put("/item/:itemId", (req, res) => {
+  const id = req.params.itemId;
+  const data = req.body;
+  const updateData =
+    "UPDATE home SET " +
+    Object.keys(data)
+      .map((item) => `${item} = ?`)
+      .join(",") +
+    " WHERE _id = '" +
+    id +
+    "'";
 
-  db.query(sql, [...values, id], (err, data) => {
-    if (err) return res.json("err", err);
-    return res.json(data);
+  db.query(updateData, [...Object.values(data)], (err, out) => {
+    if (err) return res.json({ error: err.message });
+    else return res.json({ data: out });
   });
 });
 
 //delete Data
-app.delete("/navbar/:id", (req, res) => {
-  const sql = "DELETE FROM navbar WHERE ID = ?";
-  const id = req.params.id;
-
-  db.query(sql, [id], (err, data) => {
-    if (err) return res.json("err", err);
-    return res.json(data);
+app.delete("/item/:itemId", (req, res) => {
+  const id = req.params.itemId;
+  const data = `DELETE FROM home WHERE _id = ?`;
+  db.query(data, [id], (err, data) => {
+    if (err) return res.json({ err: err.sqlMessage });
+    else res.json({ data });
   });
 });
 
