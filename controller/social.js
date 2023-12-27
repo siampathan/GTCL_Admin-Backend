@@ -14,7 +14,7 @@ db.connect((err) => {
 
 //get all data
 const allData = (req, res) => {
-  const data = "SELECT * FROM menu";
+  const data = "SELECT * FROM social_info";
   db.query(data, (err, data) => {
     if (err) return res.json({ err: err.sqlMessage });
     else return res.json({ data });
@@ -23,33 +23,13 @@ const allData = (req, res) => {
 
 //insert Data
 const insertData = (req, res) => {
-  const data = `INSERT INTO menu ( _menu, _parentId, _slug, _sort, _active, _isTitle) VALUES(?)`;
+  const data = `INSERT INTO social_info ( _title, _icon, _link) VALUES(?)`;
   const values = [...Object.values(req.body)];
   console.log("insert", values);
 
   db.query(data, [values], (err, data) => {
-    console.log(err, data);
     if (err) return res.json({ error: err.sqlMessage });
     else return res.json({ data });
-  });
-};
-
-//get Only Title
-const getTitle = (req, res) => {
-  const parent = "SELECT * FROM menu WHERE _isTitle = 1";
-  db.query(parent, (err, data) => {
-    if (err) return res.json({ err: err.sqlMessage });
-    else res.json({ data });
-  });
-};
-
-//get Only Child
-const getChild = (req, res) => {
-  const id = req.params.childId;
-  const parent = "SELECT * FROM menu WHERE _parentId = ?";
-  db.query(parent, [id], (err, data) => {
-    if (err) return res.json({ err: err.sqlMessage });
-    else res.json({ data });
   });
 };
 
@@ -58,7 +38,7 @@ const updateData = (req, res) => {
   const id = req.params.itemId;
   const data = req.body;
   const updateData =
-    "UPDATE menu SET " +
+    "UPDATE social_info SET " +
     Object.keys(data)
       .map((item) => `${item} = ?`)
       .join(",") +
@@ -75,18 +55,11 @@ const updateData = (req, res) => {
 //delete Data
 const deleteData = (req, res) => {
   const id = req.params.itemId;
-  const data = `DELETE FROM menu WHERE _id = ?`;
+  const data = `DELETE FROM social_info WHERE _id = ?`;
   db.query(data, [id], (err, data) => {
     if (err) return res.json({ err: err.sqlMessage });
     else res.json({ data });
   });
 };
 
-module.exports = {
-  allData,
-  insertData,
-  getTitle,
-  getChild,
-  updateData,
-  deleteData,
-};
+module.exports = { allData, insertData, updateData, deleteData };
