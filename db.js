@@ -1,20 +1,18 @@
 const express = require("express");
 const mysql = require("mysql");
 const cors = require("cors");
-//const multer = require("multer");
 
 const app = express();
 
 app.use(express.json());
 app.use(cors());
-//app.use(express.static("public"));
 
 //connection database
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
   password: "",
-  database: "test_db",
+  database: "gtcl_db",
 });
 
 db.connect((err) => {
@@ -23,7 +21,7 @@ db.connect((err) => {
 
 //fetch data from Database
 app.get("/", (req, res) => {
-  const data = "SELECT * FROM home";
+  const data = "SELECT * FROM menu";
   db.query(data, (err, data) => {
     if (err) return res.json({ err: err.sqlMessage });
     else return res.json({ data });
@@ -31,8 +29,8 @@ app.get("/", (req, res) => {
 });
 
 //insert data in database
-app.post("/item", (req, res) => {
-  const data = `INSERT INTO home (_id, _title, _desc, _image) VALUES(?)`;
+app.post("/create", (req, res) => {
+  const data = `INSERT INTO menu ( _menu, _parentId, _slug, _sort, _active, _isTitle) VALUES(?)`;
   const values = [...Object.values(req.body)];
   console.log("insert", values);
 
@@ -43,8 +41,27 @@ app.post("/item", (req, res) => {
   });
 });
 
+//get Title
+app.get("/title", (req, res) => {
+  const parent = "SELECT * FROM menu WHERE _isTitle = 1";
+  db.query(parent, (err, data) => {
+    if (err) return res.json({ err: err.sqlMessage });
+    else res.json({ data });
+  });
+});
+
+//get Child
+app.get("/item/:childId", (req, res) => {
+  const id = req.params.childId;
+  const parent = "SELECT * FROM menu WHERE _parentId = ?";
+  db.query(parent, [id], (err, data) => {
+    if (err) return res.json({ err: err.sqlMessage });
+    else res.json({ data });
+  });
+});
+
 //update Data
-app.put("/item/:itemId", (req, res) => {
+app.put("/update/:itemId", (req, res) => {
   const id = req.params.itemId;
   const data = req.body;
   const updateData =
@@ -63,9 +80,9 @@ app.put("/item/:itemId", (req, res) => {
 });
 
 //delete Data
-app.delete("/item/:itemId", (req, res) => {
+app.delete("/delete/:itemId", (req, res) => {
   const id = req.params.itemId;
-  const data = `DELETE FROM home WHERE _id = ?`;
+  const data = `DELETE FROM menu WHERE _id = ?`;
   db.query(data, [id], (err, data) => {
     if (err) return res.json({ err: err.sqlMessage });
     else res.json({ data });
