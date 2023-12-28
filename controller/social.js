@@ -8,9 +8,9 @@ const db = mysql.createConnection({
   database: "gtcl_db",
 });
 
-db.connect((err) => {
-  console.log(err ? err : "connected");
-});
+// db.connect((err) => {
+//   console.log(err ? err : "connected");
+// });
 
 //get all data
 const allData = (req, res) => {
@@ -33,7 +33,7 @@ const insertData = (req, res) => {
   });
 };
 
-//update Data
+//update Data update
 const updateData = (req, res) => {
   const id = req.params.itemId;
   const data = req.body;
