@@ -5,16 +5,15 @@ const db = new Sequelize("gtcl_db", "root", "", {
   dialect: "mysql",
 });
 
-//model section
 const { DataTypes } = Sequelize;
 
 const Social = db.define(
   "social",
   {
-    _name: DataTypes.STRING,
-    _image: DataTypes.STRING,
-    _url: DataTypes.STRING,
-    _link: DataTypes.STRING,
+    name: DataTypes.STRING,
+    image: DataTypes.STRING,
+    url: DataTypes.STRING,
+    link: DataTypes.STRING,
   },
   {
     freezeTableName: true,

@@ -11,23 +11,22 @@ const getItems = async (req, res) => {
   }
 };
 
-// const getItemsById = async (req, res) => {
-//   try {
-//     const response = await Social.findOne({
-//       where: {
-//         _id: req.params._id,
-//       },
-//     });
-//     res.json(response);
-//   } catch (error) {
-//     console.log(error.message);
-//   }
-// };
+const getItemsById = async (req, res) => {
+  try {
+    const response = await Social.findOne({
+      where: {
+        id: req.params.id,
+      },
+    });
+    res.json(response);
+  } catch (error) {
+    console.log(error.message);
+  }
+};
 
 const createItems = (req, res) => {
   if (req.files === null)
     return res.status(400).json({ msg: "No File Uploaded" });
-
   const name = req.body.title;
   const file = req.files.file;
   const fileSize = file.data.length;
@@ -46,12 +45,12 @@ const createItems = (req, res) => {
     if (err) return res.status(500).json({ msg: err.message });
     try {
       await Social.create({
-        _name: name,
-        _image: fileName,
-        _url: url,
-        _link: link,
+        name: name,
+        image: fileName,
+        url: url,
+        link: link,
       });
-      res.status(201).json({ msg: "Social Items Created Successfuly" });
+      res.status(201).json({ msg: "Product Created Successfuly" });
     } catch (error) {
       console.log(error.message);
     }
@@ -59,16 +58,16 @@ const createItems = (req, res) => {
 };
 
 const updateItems = async (req, res) => {
-  const product = await Social.findOne({
+  const social = await Social.findOne({
     where: {
-      _id: req.params._id,
+      id: req.params.id,
     },
   });
-  if (!product) return res.status(404).json({ msg: "No Data Found" });
+  if (!social) return res.status(404).json({ msg: "No Data Found" });
 
   let fileName = "";
   if (req.files === null) {
-    fileName = product.image;
+    fileName = social.image;
   } else {
     const file = req.files.file;
     const fileSize = file.data.length;
@@ -78,10 +77,10 @@ const updateItems = async (req, res) => {
 
     if (!allowedType.includes(ext.toLowerCase()))
       return res.status(422).json({ msg: "Invalid Images" });
-    if (fileSize > 6000000)
+    if (fileSize > 5000000)
       return res.status(422).json({ msg: "Image must be less than 5 MB" });
 
-    const filepath = `./public/images/${product.image}`;
+    const filepath = `./public/images/${social.image}`;
     fs.unlinkSync(filepath);
 
     file.mv(`./public/images/${fileName}`, (err) => {
@@ -90,17 +89,18 @@ const updateItems = async (req, res) => {
   }
   const name = req.body.title;
   const url = `${req.protocol}://${req.get("host")}/images/${fileName}`;
+  const link = req.body.link;
 
   try {
     await Social.update(
-      { _name: name, _image: fileName, _url: url, _link: link },
+      { name: name, image: fileName, link: link, url: url },
       {
         where: {
-          _id: req.params._id,
+          id: req.params.id,
         },
       }
     );
-    res.status(200).json({ msg: "Product Updated Successfuly" });
+    res.status(200).json({ msg: "Social Item Updated Successfuly" });
   } catch (error) {
     console.log(error.message);
   }
@@ -109,20 +109,20 @@ const updateItems = async (req, res) => {
 const deleteItems = async (req, res) => {
   const social = await Social.findOne({
     where: {
-      _id: req.params._id,
+      id: req.params.id,
     },
   });
   if (!social) return res.status(404).json({ msg: "No Data Found" });
 
   try {
-    const filepath = `./public/images/${social._image}`;
+    const filepath = `./public/images/${social.image}`;
     fs.unlinkSync(filepath);
     await Social.destroy({
       where: {
-        _id: req.params._id,
+        id: req.params.id,
       },
     });
-    res.status(200).json({ msg: "Social Items Deleted Successfuly" });
+    res.status(200).json({ msg: "SocialItem Deleted Successfuly" });
   } catch (error) {
     console.log(error.message);
   }
@@ -130,6 +130,7 @@ const deleteItems = async (req, res) => {
 
 module.exports = {
   getItems,
+  getItemsById,
   createItems,
   updateItems,
   deleteItems,
