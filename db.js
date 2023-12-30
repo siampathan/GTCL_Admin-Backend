@@ -17,5 +17,3 @@ app.use("/social", socialRoutes);
 app.listen(8000, () => {
   console.log(`server runing at 8000 port`);
 });
-
-//https://www.youtube.com/watch?v=jPjPGAQOMac
